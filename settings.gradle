@@ -1,0 +1,5 @@
+rootProject.name = 'canal-elasticsearch'
+include 'dbsync-client'
+include 'dbsync-server'
+
+

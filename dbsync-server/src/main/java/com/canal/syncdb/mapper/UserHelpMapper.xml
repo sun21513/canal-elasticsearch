@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.canal.syncdb.mapper.UserHelpMapper">
+    <select id="findRoleByUsername"    resultType="java.util.HashMap">
+        SELECT role,username FROM vsoucenter.vso_user_role where username in
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+    <select id="findCrmStatusByUsername"   resultType="java.util.HashMap">
+        select username,(SELECT  status from  com_vsochina_sp.sp_provider_status sp where   sp.provider_id =sps.provider_id ) as status  from  com_vsochina_sp.sp_provider_summary sps  WHERE username in
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+    <select id="findCrmAuths"  resultType="java.lang.String">
+      SELECT username,auth_status
+        FROM vsoucenter.vso_user_auth_enterprise
+        WHERE auth_status =1 and username IN
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+    <select id="findPersonAuths"  resultType="java.lang.String">
+      SELECT username
+        FROM vsoucenter.vso_user_auth_realname
+        WHERE auth_status =1 and username IN
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+    <select id="findMobileAuths"  resultType="java.lang.String">
+        SELECT username
+        FROM vsoucenter.vso_user_auth_mobile
+        WHERE auth_status =1 and username IN
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+    <select id="findMailAuths"  resultType="java.lang.String">
+        SELECT username
+        FROM vsoucenter.vso_user_auth_email
+        WHERE auth_status =1 and username IN
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+    <select id="findBankAuths"  resultType="java.lang.String">
+        SELECT username
+        FROM vsoucenter.vso_user_auth_bank
+        WHERE bind_status =1 and username IN
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+    <select id="findTeamAuths"  resultType="java.lang.String">
+        SELECT leader_id
+        FROM vsoucenter.vso_user_auth_team
+        WHERE auth_status =1 and leader_id IN
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+
+    <select id="findPackageInfo"  resultType="java.util.HashMap">
+        SELECT   username,status ,startAt,expiredAt,packageId,
+        (SELECT  category from  com_vsochina_vip.pkg_package  pp WHERE ppu.packageId = pp.id) as pkgCategory from com_vsochina_vip.pkg_package_user ppu
+        WHERE  ppu.username in
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+    <select id="findVipMemInfo" resultType="java.util.HashMap">
+        SELECT username,status,startAt,expiredAt,vipId,
+        (SELECT  category from  com_vsochina_vip.mem_vip  mv WHERE mvu.vipId = mv.id) as vipCategory from com_vsochina_vip.mem_vip_user mvu
+        WHERE  mvu.username in
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+    <select id="findRegSource" resultType="java.util.HashMap">
+        select source_url,username from  vsoucenter.vso_user_reg_source where username IN
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+    <select id="findSpreadNum" parameterType="java.lang.String"  resultType="java.lang.String" >
+        SELECT   spread_num  　FROM  vsoucenter.vso_user where  username =  #{username, jdbcType=VARCHAR}
+    </select>
+
+    <select id="findVipCategory"   parameterType="java.lang.Integer"  resultType="java.lang.Integer" >
+            SELECT   category FROM  com_vsochina_vip.mem_vip where id =  #{vipId}
+    </select>
+
+    <select id="findPackageCategory"   parameterType="java.lang.Integer"  resultType="java.lang.Integer" >
+        SELECT   category FROM  com_vsochina_vip.pkg_package where id =  #{packageId}
+    </select>
+</mapper>

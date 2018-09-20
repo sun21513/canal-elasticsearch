@@ -1,0 +1,81 @@
+group 'canal-elasticsearch'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+// java编译的时候缺省状态下会因为中文字符而失败
+[compileJava,compileTestJava,javadoc]*.options*.encoding = 'UTF-8'
+
+repositories {
+    mavenCentral()
+}
+
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
+    }
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile(group: 'com.alibaba.otter', name: 'canal.client', version: '1.0.24'){
+        exclude  group:'org.springframework'
+        exclude  group:'org.jboss.netty'
+    }
+    compile group: 'com.ning', name: 'compress-lzf', version: '0.9.5'
+    compile group: 'commons-pool', name: 'commons-pool', version: '1.6'
+}
+
+def env = System.getProperty("env") ?: 'develop'
+def instance = System.getProperty("instance") ?: 'user'
+
+sourceSets {
+    main {
+        java { srcDirs = [] }
+        groovy { srcDirs 'src/main/java', 'src/main/groovy' }
+        resources {
+            srcDirs 'src/main/resources/', "src/main/vso-$env/${instance}", 'src/main/java'
+            exclude "*.java"
+        }
+        output.resourcesDir = "build/classes/main"
+    }
+}
+
+
+def mainClassName = 'com.canal.elasticsearch.Client'
+
+jar.manifest.attributes 'Main-Class': mainClassName
+
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+jar {
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    exclude('*.txt', '*.html')
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    exclude 'META-INF/NOTICE', 'META-INF/*.txt'
+    exclude 'META-INF/LICENSE', 'META-INF/*.txt'
+    exclude 'META-INF/DEPENDENCIES'
+}
+
+
+shadowJar {
+    mergeServiceFiles {
+        path = 'META-INF/spring.*'
+    }
+}

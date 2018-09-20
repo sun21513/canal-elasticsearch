@@ -1,0 +1,91 @@
+group 'canal-elasticsearch'
+version '1.0-SNAPSHOT'
+
+
+version = "1.0.0"
+
+
+apply plugin: 'groovy'
+apply plugin: 'java'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.8
+
+def env = System.getProperty("env") ?: 'develop'
+
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenCentral()
+}
+/*buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
+    }
+}
+
+
+apply plugin: 'com.github.johnrengelman.shadow'*/
+
+dependencies {
+    "org.apache.thrift:libthrift:0.10.0"
+    compile group: 'org.json', name: 'json', version: '20180130'
+    compile 'org.codehaus.groovy:groovy-all:2.3.11'
+    compile group: 'org.reflections', name: 'reflections', version: '0.9.10'
+    compile group: 'org.springframework.data', name: 'spring-data-elasticsearch', version: '2.0.2.RELEASE'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+sourceSets {
+    main {
+        java { srcDirs = [] }
+        groovy { srcDirs 'src/main/java', 'src/main/groovy' }
+        resources {
+            srcDirs 'src/main/resources/', "src/main/vso-$env", 'src/main/java'
+            exclude "*.java"
+        }
+        output.resourcesDir = "build/classes/main"
+    }
+}
+
+def mainClassName = 'com.canal.syncdb.SyncdbMain'
+
+jar.manifest.attributes 'Main-Class': mainClassName
+
+jar {
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    exclude('*.txt', '*.html')
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    exclude 'META-INF/NOTICE', 'META-INF/*.txt'
+    exclude 'META-INF/LICENSE', 'META-INF/*.txt'
+    exclude 'META-INF/DEPENDENCIES'
+}
+
+
+/*
+shadowJar {
+    mergeServiceFiles {
+        path = 'META-INF/spring.*'
+    }
+}
+*/
+
+def artifactId = "syncdb-server"
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}

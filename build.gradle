@@ -1,0 +1,106 @@
+
+subprojects {
+
+    apply plugin: 'groovy'
+    apply plugin: 'java'
+    apply plugin: 'maven'
+
+    group 'canal-elasticsearch'
+    version '1.0-SNAPSHOT'
+
+    apply plugin: 'java'
+
+    sourceCompatibility = 1.8
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        testCompile group: 'junit', name: 'junit', version: '4.12'
+    }
+// JVM 版本号要求
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+// java编译的时候缺省状态下会因为中文字符而失败
+    [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
+
+//定义版本号
+    ext {
+        groovyVersion = '2.4.11'
+        springVersion = '4.3.8.RELEASE'
+        mybatisVersion = '3.4.4'
+        mybatisSpringVersion = '1.3.1'
+        druidVersion = '1.0.29'
+        thriftVersion = '0.10.0'
+        mysqlDriverVersion = '5.1.42'
+        junitVersion = '4.12'
+        slf4jVersion = '1.7.10'
+        luceneVersion = '5.4.1'
+        esVersion = '2.2.1'
+    }
+
+    repositories {
+        mavenCentral()
+        /* jcenter()*/
+    }
+
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    jar {
+        manifest {
+            attributes("Implementation-Title": "Gradle")
+        }
+    }
+
+    dependencies {
+        // 通用依赖
+        compile(
+                "org.codehaus.groovy:groovy-all:$groovyVersion",
+                "org.springframework:spring-core:$springVersion",
+                "org.springframework:spring-beans:$springVersion",
+                "org.springframework:spring-aop:$springVersion",
+                "org.springframework:spring-expression:$springVersion",
+                "org.springframework:spring-context:$springVersion",
+                "org.springframework:spring-aspects:$springVersion",
+                "org.springframework:spring-tx:$springVersion",
+                "org.springframework:spring-jdbc:$springVersion",
+                "org.mybatis:mybatis:$mybatisVersion",
+                "org.mybatis:mybatis-spring:$mybatisSpringVersion",
+                "com.alibaba:druid:$druidVersion",
+                "mysql:mysql-connector-java:$mysqlDriverVersion",
+                "org.apache.thrift:libthrift:$thriftVersion",
+                "org.slf4j:slf4j-log4j12:$slf4jVersion",
+                "org.apache.lucene:lucene-core:$luceneVersion",
+                "org.apache.lucene:lucene-queryparser:$luceneVersion",
+                "org.apache.lucene:lucene-analyzers-common:$luceneVersion",
+                "org.apache.lucene:lucene-queries:$luceneVersion",
+                "org.apache.lucene:lucene-suggest:$luceneVersion",
+                "org.elasticsearch:elasticsearch:$esVersion"
+        )
+        compile group: 'org.springframework.data', name: 'spring-data-elasticsearch', version: '2.0.2.RELEASE'
+        compile group: 'com.twitter', name: 'jsr166e', version: '1.1.0'
+        compile group: 'com.tdunning', name: 't-digest', version: '3.1'
+        compile group: 'com.carrotsearch', name: 'hppc', version: '0.7.2'
+        compile group: 'org.json', name: 'json', version: '20160810'
+        compile group: 'org.apache.zookeeper', name: 'zookeeper', version: '3.4.10'
+        compile group: 'com.ning', name: 'compress-lzf', version: '0.9.5'
+        compile(group: 'org.apache.curator', name: 'curator-framework', version: '2.8.0') {
+            exclude group: 'com.google.guava'
+        }
+        compile(group: 'org.apache.curator', name: 'curator-recipes', version: '2.8.0') {
+            exclude group: 'com.google.guava'
+        }
+        compile group: 'com.google.guava', name: 'guava', version: '18.0'
+
+        // 测试依赖
+        testCompile(
+                "org.springframework:spring-test:$springVersion",
+                "junit:junit:$junitVersion"
+        )
+    }
+}

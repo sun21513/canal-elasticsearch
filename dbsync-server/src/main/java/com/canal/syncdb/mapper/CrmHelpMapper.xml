@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.canal.syncdb.mapper.CrmHelpMapper">
+    <select id="findAreaNameById"   parameterType="java.lang.Integer"   resultType="java.lang.String">
+        SELECT  name  from com_vsochina_maker.tb_city    tc  WHERE  tc.id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="findTags"  resultType="java.util.HashMap">
+        SELECT aa.provider_id  as provider_id , GROUP_CONCAT(aa.name
+
+        SEPARATOR ",") AS tagName
+        FROM (
+        SELECT spt.provider_id,st.name
+
+        FROM   com_vsochina_sp.sp_provider_tag  spt
+        LEFT OUTER
+        JOIN com_vsochina_sp.sp_tags st ON spt.tag_id = st.id
+
+        WHERE spt.provider_id IN
+        <foreach collection="list" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        ) aa
+        GROUP BY aa.provider_id
+    </select>
+
+    <select id="findTagNameById"  parameterType="java.lang.Integer" resultType="java.lang.String" >
+        SELECT  name FROM  com_vsochina_sp.sp_tags  where id =  #{tagid}
+    </select>
+
+    <select id="findTagIds"  resultType="java.util.HashMap"  parameterType="java.lang.Integer">
+        SELECT  tag_id,provider_id  from  com_vsochina_sp.sp_provider_tag   where provider_id
+        IN
+        <foreach collection="list" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="findUsernameByProviderid"  resultType="java.lang.String" parameterType="java.lang.Integer">
+        SELECT  username  FROM   com_vsochina_sp.sp_provider_summary WHERE provider_id = #{providerId,jdbcType=INTEGER}  limit 1
+    </select>
+
+    <select id="findStatus" resultType="java.util.HashMap">
+        SELECT  check_time,status,(is_delete*1) as is_delete,provider_id  FROM  com_vsochina_sp.sp_provider_status   where
+        provider_id  in
+        <foreach collection="list" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="findDetail" resultType="java.util.HashMap" >
+    SELECT count(1) as  hold_total,sum(rd.task_cash) as hold_amount,username  from  com_vsochina_task.req_demands  rd  where
+    ( rd.task_bn  in   (SELECT rdd.task_bn
+    FROM  com_vsochina_task.req_demands_detail  rdd where  rdd.bidder_username   IN
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+      )) and rd.`status` =13
+   </select>
+
+    <select id="findCategory" resultType="java.util.HashMap" parameterType="java.lang.Integer">
+        select
+        (select GROUP_CONCAT(names.name)  from   (SELECT (select name from com_vsochina_maker.tb_industry st where  st.id = ptype) as name from com_vsochina_sp.sp_provider_industry spi where spi.provider_id =#{providerId,jdbcType=INTEGER}  GROUP BY ptype) names)  as catNames,
+        (select   GROUP_CONCAT(gspi.ptype) as ptype  from  (SELECT ptype from com_vsochina_sp.sp_provider_industry spi where spi.provider_id = #{providerId,jdbcType=INTEGER} GROUP BY ptype) gspi) as ptype,
+        (select   GROUP_CONCAT(gspi.stype) as stype  from  (SELECT stype from com_vsochina_sp.sp_provider_industry spi where spi.provider_id =#{providerId,jdbcType=INTEGER}  GROUP BY stype) gspi) as stype,
+        ( select   GROUP_CONCAT(gspi.ctype) as ctype  from  (SELECT ctype from com_vsochina_sp.sp_provider_industry spi where spi.provider_id = #{providerId,jdbcType=INTEGER} GROUP BY ctype) gspi) as ctype
+        from com_vsochina_sp.sp_provider_industry limit 1
+    </select>
+
+
+    <select id="findCategoryOneName"  resultType="java.util.HashMap">
+        SELECT provider_id,(select name from com_vsochina_maker.tb_industry st where  st.id =spi.ptype) as name   from    com_vsochina_sp.sp_provider_industry spi where spi.provider_id IN
+        <foreach collection="list" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="findCategoryTypes"  resultType="java.util.HashMap">
+        SELECT ptype,provider_id,stype,ctype from com_vsochina_sp.sp_provider_industry spi where spi.provider_id IN
+        <foreach collection="list" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    
+    <select id="findDecorateLevel"  resultType="java.util.HashMap" parameterType="java.lang.String">
+        SELECT  user_decorate_level as lev,username FROM  com_vsochina_maker.tb_space_home_change  thc WHERE   thc.username in
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+
+    <select id="findKeywords"   resultType="java.util.HashMap"  >
+        SELECT key_word  as keyword,send_time as updatetime,username FROM com_vsochina_maker.tb_crm_company_words  tcw  WHERE  status=2  AND   username IN
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+    <select id="findCats"    resultType="java.util.HashMap" >
+        SELECT indus_one,indus_two,send_time,username as updatetime  FROM com_vsochina_maker.tb_crm_industry_top WHERE  status=2 and username IN
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+    <select id="findWork" resultType="com.canal.syncdb.bean.crm.CrmWork">
+        SELECT id,username
+        FROM com_vsochina_maker.tb_space_cases
+        WHERE username IN
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+         AND deleted=0 AND is_show=1
+        ORDER BY created_at DESC
+
+    </select>
+
+    <select id="getTagNamesByIds"  resultType="java.lang.String" >
+      SELECT  name  from com_vsochina_sp.sp_tags where  id  IN
+        <foreach collection="array" item="ids" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="findVipName"  resultType="java.util.HashMap" >
+      SELECT  group_id,group_name,start_time,end_time,username   FROM vsoucenter.vso_vip2_privileges WHERE   username IN
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+
+    <select id="findUsernameByVipUserId" resultType="java.lang.String" parameterType="java.lang.Integer">
+        SELECT  username from com_vsochina_vip.mem_vip_user WHERE  id = #{vipUserId,jdbcType=INTEGER}
+    </select>
+
+    <select id="findVipMemInfo"  resultType="java.util.HashMap" parameterType="java.lang.String">
+        SELECT    id,vipId,username,status,startAt,expiredAt,(SELECT status   from  com_vsochina_vip.mem_vip_busi_opt_push bop  where mvu.id = bop.vipUserId ) as push_status,
+        (select name from com_vsochina_vip.mem_vip  mv  where mvu.vipId =  mv.id ) as memName
+        FROM  com_vsochina_vip.mem_vip_user mvu WHERE  username IN
+        <foreach collection="list" item="username" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </select>
+    
+    <select id="findPushStatus"  resultType="java.lang.Integer"  parameterType="java.lang.Integer" >
+        SELECT  status FROM  com_vsochina_vip.mem_vip_busi_opt_push WHERE  vipUserId = #{vipUserId,jdbcType=INTEGER}
+    </select>
+
+    <select id="findMemVipName"  resultType="java.lang.String" parameterType="java.lang.Integer">
+        SELECT name FROM  com_vsochina_vip.mem_vip WHERE  id = #{vipId,jdbcType=INTEGER}
+    </select>
+
+    <select id="findIdByUsername"  resultType="java.lang.String" parameterType="java.lang.String">
+        select  CAST(su.provider_id  AS CHAR) as id  from  com_vsochina_sp.sp_provider_summary su,com_vsochina_sp.sp_provider_status  st where  su.provider_id = st.provider_id  and username = #{username,jdbcType=VARCHAR}  and st.is_delete = 1
+    </select>
+
+    <select id="findCitys" resultType="java.util.HashMap">
+      SELECT id,name from  com_vsochina_maker.tb_city
+    </select>
+</mapper>
